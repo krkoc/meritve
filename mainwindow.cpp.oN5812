@@ -1,0 +1,134 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include <QtSerialPort/QSerialPortInfo>
+#include <QDebug>
+#include <QFileDialog>
+#include <QDateTime>
+
+QT_USE_NAMESPACE
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    map[0]=2;
+    map[1]=2;
+    map[2]=2;
+    comCounter=0;
+    ui->setupUi(this);
+    this->setWindowTitle("CNCK");
+    calibWindow= new Calibration();
+    filenameL="";
+    ui->lineEditL->setDisabled(true);
+    foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
+        ui->comComboL->addItem(info.portName());
+    foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
+        ui->comComboR->addItem(info.portName());
+
+    connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
+    connect(&threadL, SIGNAL(response(QString)), this, SLOT(showResponse(QString)));
+    connect(&threadR, SIGNAL(response(QString)), this, SLOT(showResponse(QString)));
+
+    connect(ui->calibrationButton_L, SIGNAL(clicked()), this, SLOT(calibrationDialog()));
+
+    connect(calibWindow, SIGNAL(sendCalibrationParameter()),this,SLOT(receiveCalibrationParameter()) );
+    connect(ui->pushIzberiDat_L, SIGNAL(clicked()),this,SLOT(getFilenameL()) );
+
+    connect(ui->lineEditL,SIGNAL(textChanged(QString)), this, SLOT(changeFileNameL(QString)));
+
+    // connect(&thread, SIGNAL(error(QString)),this, SLOT(processError(QString)));
+    // connect(&thread, SIGNAL(timeout(QString)),this, SLOT(processTimeout(QString)));
+    }
+
+void MainWindow::calibrationDialog()
+{
+    calibWindow->show();
+    qDebug()<<"calibration dialog";
+}
+
+void MainWindow::receiveCalibrationParameter()
+{
+    qDebug()<<"received "<< calibWindow->realValue->value();
+}
+
+void MainWindow::getFilenameL()
+{
+    QFileDialog dialog;
+    dialog.setFileMode(QFileDialog::AnyFile);
+    filenameL=dialog.getSaveFileName(this,
+        tr("Odri datoteko za pisanje"), "", tr("CSV (*.csv)") );
+    ui->lineEditL->setText(filenameL);
+}
+
+
+void MainWindow::changeFileNameL(QString filename)
+{
+    //this gets called every time the file edit box changes
+    //close opened files
+    fileL.close();
+    fileL.setFileName(filename);
+    //open new file
+    if (fileL.open(QIODevice::WriteOnly | QIODevice::Append)) {
+        qDebug()<<"file"<< filenameL <<"opened";
+    }
+}
+
+
+
+void MainWindow::transaction()
+{
+    qDebug()<<"comCounter "<<comCounter<<"map[] "<<map[comCounter];
+    if (comCounter < map.size()-1) {
+        querryThread(map[comCounter]);
+        comCounter++;
+    }
+    else if (comCounter>=map.size()-1)
+        comCounter=0;
+}
+
+
+void MainWindow::querryThread(int port){
+   if (port==1){
+    threadL.transaction(ui->comComboL->currentText(),200,"?\r");
+   }
+   else if (port==2){
+    threadR.transaction(ui->comComboR->currentText(),200,"?\r");
+   }
+}
+
+void MainWindow::showResponse(const QString &s)
+{
+    double value=s.toDouble()-calibWindow->realValue->value();
+    QDateTime datetime=QDateTime::currentDateTime();
+    //write to file directly because it must exist if it hasn't been deleted meanwhile...TODO catch exception
+    //if (filename!=""){
+        QString string=datetime.toString("dd.MM.yyyy")+" , "+datetime.toString("hh:mm:ss") + " , "+ QString::number(value);
+        qDebug()<<"map["<<comCounter<<"]= "<<map[comCounter];
+        ui->plainTextEditL->appendPlainText(string);
+        fileL.write((string+"\r\n").toUtf8());
+
+    //}
+}
+
+
+
+
+void MainWindow::processError(const QString &s)
+{
+   // setControlsEnabled(true);
+   // statusLabel->setText(tr("Status: Not running, %1.").arg(s));
+   // trafficLabel->setText(tr("No traffic."));
+}
+
+void MainWindow::processTimeout(const QString &s)
+{
+    //setControlsEnabled(true);
+    //statusLabel->setText(tr("Status: Running, %1.").arg(s));
+    //trafficLabel->setText(tr("No traffic."));
+}
+
+
+MainWindow::~MainWindow()
+{
+    //close all files before quitting
+    delete ui;
+}
