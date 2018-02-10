@@ -56,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // connect(&thread, SIGNAL(timeout(QString)),this, SLOT(processTimeout(QString)));
     trenutno=0;
     this->updateComMap();
-    }
+}
 
 void MainWindow::calibrationDialog1()
 {
@@ -80,7 +80,7 @@ void MainWindow::receiveCalibrationParameter()
     if (this->side=="left"){
         threadL.transaction(ui->comComboL->currentText(),200,"?\r");
         qDebug()<<"receive calib param for left channel";
-     }
+    }
     if (this->side=="right"){
         threadR.transaction(ui->comComboR->currentText(),200,"?\r");;
         qDebug()<<"receive calib param for right channel";
@@ -143,7 +143,7 @@ void MainWindow::querryThread(int port){
 
     if (calibWindow->calibrationMode==0){
         if (port==1){
-             threadL.transaction(ui->comComboL->currentText(),200,"?\r");
+            threadL.transaction(ui->comComboL->currentText(),200,"?\r");
 
             // qDebug()<<"calling threadL";
         }
@@ -162,56 +162,58 @@ void MainWindow::showResponse(const QString &s,QString port)
     int position=-1;
     if (port== ui->comComboL->currentText()) {
 
-      if (calibWindow->calibrationMode){
-          calibWindow->correctionL =s.toDouble()+calibWindow->realValue->value();
-          qDebug()<<"LEFT show response - raw: "<<s<<"correction: "<<calibWindow->correctionL;
-      }
-      else if (!calibWindow->calibrationMode){
-          value=(-s.toDouble()+calibWindow->correctionL);
-           qDebug()<<"raw left: "<<s<<" correctionL: "<<calibWindow->correctionL;
-          //catch rules
-          ui->plainTextEditL->appendPlainText(QString::number(value));
-          //find position
-          position = scanTable(value, ui->tableWidgetL);
-          qDebug()<<"position: "<<position;
+        if (calibWindow->calibrationMode){
+            calibWindow->correctionL =s.toDouble()+calibWindow->realValue->value();
+            qDebug()<<"LEFT show response - raw: "<<s<<"correction: "<<calibWindow->correctionL;
+        }
+        else if (!calibWindow->calibrationMode){
+            value=(-s.toDouble()+calibWindow->correctionL);
+            qDebug()<<"raw left: "<<s<<" correctionL: "<<calibWindow->correctionL;
+            //catch rules
+            ui->plainTextEditL->appendPlainText(QString::number(value));
+            //find position
+            position = scanTable(value, ui->tableWidgetL);
+            qDebug()<<"position: "<<position;
 
-          //leak... fix this later
-          item = new QTableWidgetItem;
-          item->setText(QString::number(value));
-          qDebug()<<"set text "<<item->text();
-          //write to position
-          if (position >0)
-          ui->meritveTable->setItem(0,position,item);
-          position=-1;
-      }
-   }
+            //leak... fix this later
+            item = new QTableWidgetItem;
+            item->setText(QString::number(value));
+            qDebug()<<"set text "<<item->text();
+            //write to position
+            if (position >=0){
+                ui->meritveTable->setItem(0,position,item);
+                position=-1;
+            }
+        }
+    }
 
     if (port    == ui->comComboR->currentText()) {
 
-      if (calibWindow->calibrationMode){
-          calibWindow->correctionR =s.toDouble()+calibWindow->realValue->value();
-          qDebug()<<"right show response - raw: "<<s<<"correction: "<<calibWindow->correctionR;
-      }
-      else if (!calibWindow->calibrationMode){
-      value=(-s.toDouble()+calibWindow->correctionR);
-          //catch rules
-        ui->plainTextEditL->appendPlainText(QString::number(value));
-       position = scanTable(value, ui->tableWidgetR);
-        item = new QTableWidgetItem;
-      item->setText(QString::number(value));
-      qDebug()<<"set text "<<item->text();
-      //write to position
-      if (position >0)
-      ui->meritveTable->setItem(0,row_countL+position,item);
+        if (calibWindow->calibrationMode){
+            calibWindow->correctionR =s.toDouble()+calibWindow->realValue->value();
+            qDebug()<<"right show response - raw: "<<s<<"correction: "<<calibWindow->correctionR;
+        }
+        else if (!calibWindow->calibrationMode){
+            value=(-s.toDouble()+calibWindow->correctionR);
+            //catch rules
+            ui->plainTextEditL->appendPlainText(QString::number(value));
+            position = scanTable(value, ui->tableWidgetR);
+            item = new QTableWidgetItem;
+            item->setText(QString::number(value));
+            qDebug()<<"set text "<<item->text();
+            //write to position
+            if (position >=0){
+                ui->meritveTable->setItem(0,row_countL+position,item);
+                position=-1;
+            }
+            //find position
+            //write to position
+        }
+    }
 
-        //find position
-        //write to position
-      }
-   }
 
 
-
-   connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
+    connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
 }
 
 
@@ -220,9 +222,9 @@ void MainWindow::showResponse(const QString &s,QString port)
 
 void MainWindow::processError(const QString &s)
 {
-   // setControlsEnabled(true);
-   // statusLabel->setText(tr("Status: Not running, %1.").arg(s));
-   // trafficLabel->setText(tr("No traffic."));
+    // setControlsEnabled(true);
+    // statusLabel->setText(tr("Status: Not running, %1.").arg(s));
+    // trafficLabel->setText(tr("No traffic."));
 }
 
 void MainWindow::processTimeout(const QString &s)
@@ -257,7 +259,7 @@ void MainWindow::getFilenameL()
     QFileDialog dialog;
     dialog.setFileMode(QFileDialog::AnyFile);
     filenameL=dialog.getSaveFileName(this,
-        tr("Odri datoteko za pisanje"), "", tr("CSV (*.csv)") );
+                                     tr("Odri datoteko za pisanje"), "", tr("CSV (*.csv)") );
     ui->lineEditL->setText(filenameL);
 }
 
@@ -277,23 +279,24 @@ bool MainWindow::isWithinTolerance(double value, double lowLimit, double highLim
 int MainWindow::scanTable(double value, QTableWidget *table){
     qDebug()<<"row count"<<table->rowCount();
     qDebug()<<"column count"<<table->columnCount();
+    int i=-1;
+    for (i=0; i < table->rowCount();i++)
+        if (table->item(i,0) && (table->item(i,1)) ){
+            //qDebug()<<"io: "<<table->item(i,0)->text().toDouble();
+            if ((value > table->item(i,0)->text().toDouble()) && (value < table->item(i,1)->text().toDouble())){
+                qDebug()<<"i"<<i;
+                return i;
+            }
+            // qDebug()<<"item: "<<table->item(j,i)->text() <<"i: "<<i<<" j: "<<j;
+        }
+    qDebug()<<"i_exit"<<i;
+    return -1;
 
-    for (int i=0; i < table->rowCount();i++)
-                if (table->item(i,0) && (table->item(i,1)) ){
-                    qDebug()<<"io: "<<table->item(i,0)->text().toDouble();
-                    if ((value > table->item(i,0)->text().toDouble()) && (value < table->item(i,1)->text().toDouble())){
-                        qDebug()<<"i"<<i;
-                        return i;
-
-                    }
-                  // qDebug()<<"item: "<<table->item(j,i)->text() <<"i: "<<i<<" j: "<<j;
-                }
-   qDebug()<<"\n";
-    }
+}
 
 
 void MainWindow::resizeMeasurementTable(QTableWidget *table, int columnCount){
-//creates and updates the measurement table
+    //creates and updates the measurement table
     table->setColumnCount(columnCount);
     table->setRowCount(1);
     table->resize(table->columnWidth(1)*columnCount ,(2)*table->rowHeight(0));
