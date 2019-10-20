@@ -12,9 +12,12 @@ Calibration::Calibration(QWidget *parent) : QWidget(parent)
     QHBoxLayout *topLeftLayout = new QHBoxLayout(this);
     topLeftLayout->addWidget(calibrateButton);
     topLeftLayout->addWidget(realValue);
+<<<<<<< HEAD
    // connect(calibrateButton, SIGNAL(clicked()), this, SIGNAL(sendCalibrationParameter()));
     
     //emit sendCalibrationParameter();
+=======
+>>>>>>> version on raspbi w/ gpio
     connect(this->calibrateButton,SIGNAL(clicked()),this, SLOT(hide()));
     connect(this->calibrateButton,SIGNAL(clicked()),this, SLOT(enterCalibrationMode())  );
 }

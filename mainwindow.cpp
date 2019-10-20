@@ -4,6 +4,10 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QDateTime>
+<<<<<<< HEAD
+=======
+#include "gpiothread.h"
+>>>>>>> version on raspbi w/ gpio
 
 QT_USE_NAMESPACE
 MainWindow::MainWindow(QWidget *parent) :
@@ -21,6 +25,12 @@ MainWindow::MainWindow(QWidget *parent) :
     transmitTimer->setSingleShot(true);
     transmitTimer->setInterval(220);
     timer->start(2000);
+<<<<<<< HEAD
+=======
+    gpiothread = new GPIOThread();
+    gpiothread->start();
+     qDebug()<<"program start";
+>>>>>>> version on raspbi w/ gpio
     ui->lineEditL->setDisabled(true);
     row_countL=1;
     column_count=2;
@@ -36,6 +46,11 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->comComboR->addItem(info.portName());
 
     connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
+<<<<<<< HEAD
+=======
+    connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
+    connect(gpiothread,SIGNAL(simulateButton()),this,SLOT(transaction()));
+>>>>>>> version on raspbi w/ gpio
 
     connect(&threadL, SIGNAL(response(QString,QString)), this, SLOT(showResponse(QString,QString)));
     connect(&threadR, SIGNAL(response(QString,QString)), this, SLOT(showResponse(QString,QString)));
@@ -227,7 +242,11 @@ void MainWindow::processError(const QString &s)
     // trafficLabel->setText(tr("No traffic."));
 }
 
+<<<<<<< HEAD
 void MainWindow::processTimeout(const QString &s)
+=======
+ void MainWindow::processTimeout(const QString &s)
+>>>>>>> version on raspbi w/ gpio
 {
     //setControlsEnabled(true);
     //statusLabel->setText(tr("Status: Running, %1.").arg(s));

@@ -34,7 +34,11 @@
 #include "masterthread.h"
 
 #include <QtSerialPort/QSerialPort>
+<<<<<<< HEAD
 
+=======
+#include <QDebug>
+>>>>>>> version on raspbi w/ gpio
 #include <QTime>
 
 QT_USE_NAMESPACE
@@ -76,6 +80,10 @@ void MasterThread::transaction(const QString &portName, int waitTimeout, const Q
 void MasterThread::run()
 {
     bool currentPortNameChanged = false;
+<<<<<<< HEAD
+=======
+     qDebug()<<"program start";
+>>>>>>> version on raspbi w/ gpio
     mutex.lock();
     //! [4] //! [5]
     QString currentPortName;
