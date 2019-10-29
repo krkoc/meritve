@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 
-=======
->>>>>>> version on raspbi w/ gpio
 #include <QApplication>
 #include "mainwindow.h"
 int main(int argc, char *argv[])

@@ -4,10 +4,9 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QDateTime>
-<<<<<<< HEAD
-=======
+
 #include "gpiothread.h"
->>>>>>> version on raspbi w/ gpio
+
 
 QT_USE_NAMESPACE
 MainWindow::MainWindow(QWidget *parent) :
@@ -25,12 +24,10 @@ MainWindow::MainWindow(QWidget *parent) :
     transmitTimer->setSingleShot(true);
     transmitTimer->setInterval(220);
     timer->start(2000);
-<<<<<<< HEAD
-=======
+
     gpiothread = new GPIOThread();
     gpiothread->start();
-     qDebug()<<"program start";
->>>>>>> version on raspbi w/ gpio
+
     ui->lineEditL->setDisabled(true);
     row_countL=1;
     column_count=2;
@@ -46,11 +43,10 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->comComboR->addItem(info.portName());
 
     connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
-<<<<<<< HEAD
-=======
+
     connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
     connect(gpiothread,SIGNAL(simulateButton()),this,SLOT(transaction()));
->>>>>>> version on raspbi w/ gpio
+
 
     connect(&threadL, SIGNAL(response(QString,QString)), this, SLOT(showResponse(QString,QString)));
     connect(&threadR, SIGNAL(response(QString,QString)), this, SLOT(showResponse(QString,QString)));
@@ -178,11 +174,12 @@ void MainWindow::showResponse(const QString &s,QString port)
     if (port== ui->comComboL->currentText()) {
 
         if (calibWindow->calibrationMode){
-            calibWindow->correctionL =s.toDouble()+calibWindow->realValue->value();
+            calibWindow->correctionL =-s.toDouble()+calibWindow->realValue->value();
             qDebug()<<"LEFT show response - raw: "<<s<<"correction: "<<calibWindow->correctionL;
         }
         else if (!calibWindow->calibrationMode){
-            value=(-s.toDouble()+calibWindow->correctionL);
+            //value=(-s.toDouble()+calibWindow->correctionL);
+            value=(s.toDouble()+calibWindow->correctionL);
             qDebug()<<"raw left: "<<s<<" correctionL: "<<calibWindow->correctionL;
             //catch rules
             ui->plainTextEditL->appendPlainText(QString::number(value));
@@ -205,11 +202,12 @@ void MainWindow::showResponse(const QString &s,QString port)
     if (port    == ui->comComboR->currentText()) {
 
         if (calibWindow->calibrationMode){
-            calibWindow->correctionR =s.toDouble()+calibWindow->realValue->value();
+            calibWindow->correctionR =-s.toDouble()+calibWindow->realValue->value();
             qDebug()<<"right show response - raw: "<<s<<"correction: "<<calibWindow->correctionR;
         }
         else if (!calibWindow->calibrationMode){
-            value=(-s.toDouble()+calibWindow->correctionR);
+            //value=(-s.toDouble()+calibWindow->correctionR);
+            value=(s.toDouble()+calibWindow->correctionR);
             //catch rules
             ui->plainTextEditL->appendPlainText(QString::number(value));
             position = scanTable(value, ui->tableWidgetR);
@@ -242,11 +240,9 @@ void MainWindow::processError(const QString &s)
     // trafficLabel->setText(tr("No traffic."));
 }
 
-<<<<<<< HEAD
+
 void MainWindow::processTimeout(const QString &s)
-=======
- void MainWindow::processTimeout(const QString &s)
->>>>>>> version on raspbi w/ gpio
+
 {
     //setControlsEnabled(true);
     //statusLabel->setText(tr("Status: Running, %1.").arg(s));

@@ -4,10 +4,9 @@
 #include <QMainWindow>
 #include "masterthread.h"
 #include "calibration.h"
-<<<<<<< HEAD
-=======
+
 #include "gpiothread.h"
->>>>>>> version on raspbi w/ gpio
+
 #include <QFile>
 #include <QTimer>
 #include <QTableWidget>
@@ -48,10 +47,8 @@ private:
 
 
     void querryThread(int port);
-<<<<<<< HEAD
-=======
+
     GPIOThread *gpiothread;
->>>>>>> version on raspbi w/ gpio
     Ui::MainWindow *ui;
     MasterThread threadL, threadR;
     Calibration *calibWindow;
