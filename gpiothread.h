@@ -7,11 +7,14 @@ class GPIOThread:public QThread
 {
    Q_OBJECT
 
-
+private:
+    bool debounce;
 public:
     mmapGpio *rpiGpio;
     GPIOThread();
     void run();
+
+
 
 signals:
     void simulateButton(void);

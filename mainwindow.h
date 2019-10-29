@@ -67,6 +67,7 @@ private:
     void buildMapFromTable();
     QTableWidgetItem  *item;
 
+
 };
 
 #endif // MAINWINDOW_H
