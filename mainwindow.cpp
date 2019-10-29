@@ -20,11 +20,12 @@ MainWindow::MainWindow(QWidget *parent) :
     calibWindow= new Calibration();
     filenameL="";
     timer = new QTimer;
+
     transmitTimer=new QTimer;
     transmitTimer->setSingleShot(true);
     transmitTimer->setInterval(220);
     timer->start(2000);
-
+    meas_count=0;
     gpiothread = new GPIOThread();
     gpiothread->start();
 
@@ -170,33 +171,43 @@ void MainWindow::querryThread(int port){
 void MainWindow::showResponse(const QString &s,QString port)
 {
     double value;
-    int position=-1;
-    if (port== ui->comComboL->currentText()) {
 
+    int position=-1;
+    int max_meas_count = ui->tableWidgetL->rowCount() + ui->tableWidgetR->rowCount();
+    int count_limit = ui->tableWidgetL->rowCount();
+    if (port== ui->comComboL->currentText() ) {
         if (calibWindow->calibrationMode){
             calibWindow->correctionL =-s.toDouble()+calibWindow->realValue->value();
             qDebug()<<"LEFT show response - raw: "<<s<<"correction: "<<calibWindow->correctionL;
         }
-        else if (!calibWindow->calibrationMode){
+        else if (!calibWindow->calibrationMode)
+        {
             //value=(-s.toDouble()+calibWindow->correctionL);
             value=(s.toDouble()+calibWindow->correctionL);
             qDebug()<<"raw left: "<<s<<" correctionL: "<<calibWindow->correctionL;
             //catch rules
             ui->plainTextEditL->appendPlainText(QString::number(value));
             //find position
-            position = scanTable(value, ui->tableWidgetL);
+            position = scanTableInc(meas_count,0,count_limit,value, ui->tableWidgetL);
+            if (position >= 0)
+            {
+                item = new QTableWidgetItem;
+                item->setText(QString::number(value));
+                ui->meritveTable->setItem(0,meas_count,item);
+                msg+=QString::number(value)+",";
+                qDebug()<<"meas_count "<<meas_count;
+                position=-1;
+                meas_count++;
+                //delete item;
+            }
             qDebug()<<"position: "<<position;
-
             //leak... fix this later
-            item = new QTableWidgetItem;
-            item->setText(QString::number(value));
+
             qDebug()<<"set text "<<item->text();
             //write to position
-            if (position >=0){
-                ui->meritveTable->setItem(0,position,item);
-                position=-1;
-            }
-        }
+
+         }
+
     }
 
     if (port    == ui->comComboR->currentText()) {
@@ -210,21 +221,31 @@ void MainWindow::showResponse(const QString &s,QString port)
             value=(s.toDouble()+calibWindow->correctionR);
             //catch rules
             ui->plainTextEditL->appendPlainText(QString::number(value));
-            position = scanTable(value, ui->tableWidgetR);
-            item = new QTableWidgetItem;
-            item->setText(QString::number(value));
-            qDebug()<<"set text "<<item->text();
-            //write to position
-            if (position >=0){
-                ui->meritveTable->setItem(0,row_countL+position,item);
+            position = scanTableInc(meas_count, count_limit+1, max_meas_count+1, value, ui->tableWidgetR);
+            if (meas_count == count_limit)
+                meas_count++;
+            if (position >= 0)
+            {
+                item = new QTableWidgetItem;
+                item->setText(QString::number(value));
+                ui->meritveTable->setItem(0,meas_count-1,item);
+                msg+=QString::number(value)+",";
                 position=-1;
+                meas_count++;
+                //delete item;
             }
-            //find position
-            //write to position
         }
     }
 
+    if (meas_count == max_meas_count+1){
+        meas_count = 0;
+        QByteArray a;
+        a+=msg;
+        fileL.write(a);
+        fileL.write("\n");
+        msg = "";
 
+    }
 
     connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
 }
@@ -291,6 +312,7 @@ bool MainWindow::isWithinTolerance(double value, double lowLimit, double highLim
     return ((value >= lowLimit)&&(value<=highLimit)  );
 }
 
+//scans table according to constraints
 int MainWindow::scanTable(double value, QTableWidget *table){
     qDebug()<<"row count"<<table->rowCount();
     qDebug()<<"column count"<<table->columnCount();
@@ -306,8 +328,20 @@ int MainWindow::scanTable(double value, QTableWidget *table){
         }
     qDebug()<<"i_exit"<<i;
     return -1;
-
 }
+
+//scans table incrementally
+int MainWindow::scanTableInc(int position,int lo_limit,int hi_limit, double value, QTableWidget *table)
+{
+    if (position >= lo_limit && position < hi_limit)
+    {
+        return position;
+    }
+    else return -1;
+}
+
+
+
 
 
 void MainWindow::resizeMeasurementTable(QTableWidget *table, int columnCount){

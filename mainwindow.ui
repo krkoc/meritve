@@ -63,9 +63,9 @@
    <widget class="QPushButton" name="pushIzberiDat_L">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>160</x>
       <y>30</y>
-      <width>91</width>
+      <width>201</width>
       <height>23</height>
      </rect>
     </property>
@@ -254,7 +254,7 @@
     <property name="geometry">
      <rect>
       <x>310</x>
-      <y>330</y>
+      <y>310</y>
       <width>256</width>
       <height>31</height>
      </rect>
