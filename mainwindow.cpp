@@ -6,7 +6,7 @@
 #include <QDateTime>
 
 #include "gpiothread.h"
-
+#define SIMULATION
 
 QT_USE_NAMESPACE
 MainWindow::MainWindow(QWidget *parent) :
@@ -89,14 +89,19 @@ void MainWindow::receiveCalibrationParameter()
 {
     //read real
     qDebug()<<"entering rcvval";
+#ifdef SIMULATION
+    threadL.ThreadTransaction(ui->comComboL->currentText(),200,"?\r");
+#else
     if (this->side=="left"){
-        threadL.transaction(ui->comComboL->currentText(),200,"?\r");
+        threadL.ThreadTransaction(ui->comComboL->currentText(),200,"?\r");
         qDebug()<<"receive calib param for left channel";
     }
     if (this->side=="right"){
-        threadR.transaction(ui->comComboR->currentText(),200,"?\r");;
+        threadR.ThreadTransaction(ui->comComboR->currentText(),200,"?\r");;
         qDebug()<<"receive calib param for right channel";
     }
+#endif
+
 }
 
 void MainWindow::getThisValue()
@@ -140,7 +145,13 @@ void MainWindow::transaction()
     timer->stop();
     trenutno=0;
     calibWindow->calibrationMode=0;
-    for (comCounter=1;comCounter < 3 ;comCounter++) {
+#ifdef SIMULATION
+    for (comCounter=1;comCounter < 2 ;comCounter++)
+#else
+    for (comCounter=1;comCounter < 3 ;comCounter++)
+#endif
+    {
+
         transmitTimer->start();
         querryThread(comCounter);
         while(transmitTimer->remainingTime()>0);
@@ -153,29 +164,45 @@ void MainWindow::transaction()
 
 void MainWindow::querryThread(int port){
 
+
     if (calibWindow->calibrationMode==0){
         if (port==1){
-            threadL.transaction(ui->comComboL->currentText(),200,"?\r");
+            threadL.ThreadTransaction(ui->comComboL->currentText(),200,"?\r");
 
             // qDebug()<<"calling threadL";
         }
         else if (port==2){
-            threadR.transaction(ui->comComboR->currentText(),200,"?\r");
-            //qDebug()<<"calling threadR";
+            threadR.ThreadTransaction(ui->comComboR->currentText(),200,"?\r");
+            qDebug()<<"calling threadR";
         }
     }
+
 }
 
+
+void MainWindow::delay( int millisecondsToWait )
+{
+    QTime dieTime = QTime::currentTime().addMSecs( millisecondsToWait );
+    while( QTime::currentTime() < dieTime )
+    {
+        QCoreApplication::processEvents( QEventLoop::AllEvents, 100 );
+    }
+}
 
 
 void MainWindow::showResponse(const QString &s,QString port)
 {
     double value;
 
+    qDebug()<<"show response - raw: ";
     int position=-1;
     int max_meas_count = ui->tableWidgetL->rowCount() + ui->tableWidgetR->rowCount();
     int count_limit = ui->tableWidgetL->rowCount();
-    if (port== ui->comComboL->currentText() ) {
+    //peter debugif (port== ui->comComboL->currentText() ) {
+
+    if (meas_count < count_limit && port== "1")
+    {
+
         if (calibWindow->calibrationMode){
             calibWindow->correctionL =-s.toDouble()+calibWindow->realValue->value();
             qDebug()<<"LEFT show response - raw: "<<s<<"correction: "<<calibWindow->correctionL;
@@ -188,30 +215,38 @@ void MainWindow::showResponse(const QString &s,QString port)
             //catch rules
             ui->plainTextEditL->appendPlainText(QString::number(value));
             //find position
-            position = scanTableInc(meas_count,0,count_limit,value, ui->tableWidgetL);
+            position = scanTableInc(meas_count,value, ui->tableWidgetL);
             if (position >= 0)
             {
+
                 item = new QTableWidgetItem;
                 item->setText(QString::number(value));
+                item->setBackgroundColor(Qt::white);
                 ui->meritveTable->setItem(0,meas_count,item);
                 msg+=QString::number(value)+",";
                 qDebug()<<"meas_count "<<meas_count;
                 position=-1;
                 meas_count++;
-                //delete item;
+
+            }
+            else{
+                 item = new QTableWidgetItem;
+                ui->meritveTable->setItem(0,meas_count,item);
+                item->setBackgroundColor(Qt::red);
+
             }
             qDebug()<<"position: "<<position;
             //leak... fix this later
 
-            qDebug()<<"set text "<<item->text();
+
             //write to position
 
          }
 
     }
 
-    if (port    == ui->comComboR->currentText()) {
-
+    //peter debugif (port    == ui->comComboR->currentText()) {
+    else if (meas_count > count_limit && port== "2"){
         if (calibWindow->calibrationMode){
             calibWindow->correctionR =-s.toDouble()+calibWindow->realValue->value();
             qDebug()<<"right show response - raw: "<<s<<"correction: "<<calibWindow->correctionR;
@@ -221,21 +256,28 @@ void MainWindow::showResponse(const QString &s,QString port)
             value=(s.toDouble()+calibWindow->correctionR);
             //catch rules
             ui->plainTextEditL->appendPlainText(QString::number(value));
-            position = scanTableInc(meas_count, count_limit+1, max_meas_count+1, value, ui->tableWidgetR);
-            if (meas_count == count_limit)
-                meas_count++;
+            position = scanTableInc(meas_count-count_limit-1, value, ui->tableWidgetR);
+
             if (position >= 0)
             {
                 item = new QTableWidgetItem;
                 item->setText(QString::number(value));
+                item->setBackgroundColor(Qt::white);
                 ui->meritveTable->setItem(0,meas_count-1,item);
                 msg+=QString::number(value)+",";
                 position=-1;
                 meas_count++;
                 //delete item;
             }
+            else{
+                item = new QTableWidgetItem;
+                ui->meritveTable->setItem(0,meas_count-1,item);
+                item->setBackgroundColor(Qt::red);
+            }
         }
     }
+    else if (meas_count == count_limit)
+        meas_count++;
 
     if (meas_count == max_meas_count+1){
         meas_count = 0;
@@ -244,6 +286,9 @@ void MainWindow::showResponse(const QString &s,QString port)
         fileL.write(a);
         fileL.write("\n");
         msg = "";
+        delay(300);
+        ui->meritveTable->clearContents();
+
 
     }
 
@@ -331,15 +376,13 @@ int MainWindow::scanTable(double value, QTableWidget *table){
 }
 
 //scans table incrementally
-int MainWindow::scanTableInc(int position,int lo_limit,int hi_limit, double value, QTableWidget *table)
+int MainWindow::scanTableInc(int position, double value, QTableWidget *table)
 {
-    if (position >= lo_limit && position < hi_limit)
-    {
+    if ((value > table->item(position,0)->text().toDouble()) && (value < table->item(position,1)->text().toDouble()))
         return position;
-    }
+
     else return -1;
 }
-
 
 
 

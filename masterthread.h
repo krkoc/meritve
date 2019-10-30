@@ -47,7 +47,7 @@ public:
     MasterThread(QObject *parent = 0);
     ~MasterThread();
 
-    void transaction(const QString &portName, int waitTimeout, const QString &request);
+    void ThreadTransaction(const QString &portName, int waitTimeout, const QString &request);
     void run();
     QString side;
 

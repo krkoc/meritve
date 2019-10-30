@@ -1,5 +1,6 @@
 #include "mmapGpio.h"
 
+#if RPI
 // GPIO Registers that can be accessed as a part of the class
 const unsigned int mmapGpio::GPFSET0;
 const unsigned int mmapGpio::GPFCLR0;
@@ -218,7 +219,7 @@ volatile unsigned *mmapGpio::mapRegAddr(unsigned long baseAddr){
   return (volatile unsigned *)regAddrMap;
 }
 
-
+#endif
 
 
 

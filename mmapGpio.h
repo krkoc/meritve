@@ -1,11 +1,13 @@
 #ifndef MMAPGPIO_H
-    #define MMAPGPIO_H
+#define MMAPGPIO_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <unistd.h>
+#if RPI
 #include <sys/mman.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

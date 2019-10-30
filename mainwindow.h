@@ -63,8 +63,9 @@ private:
     int trenutno;
     bool isWithinTolerance(double value, double lowLimit, double highLimit);
     int scanTable(double value,  QTableWidget *table);
-    int scanTableInc(int position,int lo_limit,int hi_limit, double value, QTableWidget *table);
+    int scanTableInc(int position, double value, QTableWidget *table);
     void buildMapFromTable();
+    void delay( int millisecondsToWait );
     QTableWidgetItem  *item;
 
 

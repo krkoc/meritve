@@ -2,12 +2,15 @@
 
 GPIOThread::GPIOThread()
 {
+#if RPI
     rpiGpio = new mmapGpio(); // instantiate mmapGpio object
     rpiGpio->setPinDir(17,mmapGpio::INPUT);
+#endif
 }
 
 void GPIOThread::run()
 {
+#if RPI
     while(true)
     {
         unsigned int pinVal;
@@ -22,6 +25,5 @@ void GPIOThread::run()
        }
         this->sleep(1);
     }
-
-
+#endif
 }

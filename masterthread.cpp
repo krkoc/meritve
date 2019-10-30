@@ -38,6 +38,8 @@
 #include <QDebug>
 #include <QTime>
 
+#define SIMULATION 1
+
 QT_USE_NAMESPACE
 
 MasterThread::MasterThread(QObject *parent)
@@ -57,14 +59,17 @@ MasterThread::~MasterThread()
 //! [0]
 
 //! [1] //! [2]
-void MasterThread::transaction(const QString &portName, int waitTimeout, const QString &request)
+void MasterThread::ThreadTransaction(const QString &portName, int waitTimeout, const QString &request)
 {
     //! [1]
+    qDebug()<<"masterThread::Transaction";
     QMutexLocker locker(&mutex);
     this->portName = portName;
     this->waitTimeout = waitTimeout;
     this->request = request;
     //! [3]
+    emit this->response("3","1");
+    emit this->response("3.5","2");
     if (!isRunning())
         start();
     else
@@ -76,10 +81,12 @@ void MasterThread::transaction(const QString &portName, int waitTimeout, const Q
 //! [4]
 void MasterThread::run()
 {
+#ifdef SIMULATION
+
+#else
     bool currentPortNameChanged = false;
-
-     qDebug()<<"program start";
-
+    qDebug()<<"program start";
+    emit this->response("3","1");
     mutex.lock();
     //! [4] //! [5]
     QString currentPortName;
@@ -141,5 +148,6 @@ void MasterThread::run()
         currentRequest = request;
         mutex.unlock();
     }
-    //! [13]
+    this->exit();
+#endif
 }
