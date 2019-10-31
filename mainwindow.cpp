@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->comComboL->addItem(info.portName());
     foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
         ui->comComboR->addItem(info.portName());
-
+    ui->meritveTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
 
     connect(ui->zajemiButtonL, SIGNAL(clicked()),this, SLOT(transaction()));
